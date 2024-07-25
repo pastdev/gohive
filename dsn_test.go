@@ -136,6 +136,12 @@ func TestParseDSNWithoutDBName(t *testing.T) {
 
 func TestParseDSNWithTLSConfig(t *testing.T) {
 	b64 := base64.URLEncoding.EncodeToString([]byte(rootPEM))
+	t.Run("no tls", func(t *testing.T) {
+		cfg, e := ParseDSN("127.0.0.1")
+		require.NoError(t, e)
+		require.Nil(t, cfg.TLSCfg)
+	})
+
 	t.Run("one ca", func(t *testing.T) {
 		cfg, e := ParseDSN(fmt.Sprintf("127.0.0.1?tls.root_ca=%s", b64))
 		require.NoError(t, e)
@@ -201,6 +207,14 @@ func TestFormatDSNWithoutDBName(t *testing.T) {
 
 func TestFormatDSNWithTLSConfig(t *testing.T) {
 	b64 := base64.URLEncoding.EncodeToString([]byte(rootPEM))
+	t.Run("no tls", func(t *testing.T) {
+		require.Equal(t,
+			":@127.0.0.1?batch=0",
+			(&Config{
+				Addr: "127.0.0.1",
+			}).FormatDSN())
+	})
+
 	t.Run("one ca", func(t *testing.T) {
 		require.Equal(t,
 			fmt.Sprintf(":@127.0.0.1?batch=0&tls.root_ca=%s", b64),
